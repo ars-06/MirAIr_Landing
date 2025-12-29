@@ -94,35 +94,49 @@
     <div class="max-w-xl mx-auto text-center">
         <h2 class="text-4xl font-bold mb-8">Own the morning.</h2>
         
-        <form id="sheetdb-form" class="flex flex-col gap-4">
-            <input 
-                type="text" 
-                name="data[name]" 
-                required 
-                placeholder="Full Name" 
-                class="w-full bg-white/5 border border-white/10 px-6 py-4 rounded-full focus:outline-none focus:border-blue-500 transition text-white"
-            >
-            
-            <div class="flex flex-col md:flex-row gap-3">
+        <form id="sheetdb-form" class="flex flex-col gap-4 text-left">
+            <input type="hidden" name="data[timestamp]" id="timestamp-hidden">
+
+            <div class="space-y-1">
+                <label class="text-[10px] uppercase tracking-[0.2em] text-gray-500 ml-4 font-bold">Full Name</label>
                 <input 
-                    type="email" 
-                    name="data[email]" 
+                    type="text" 
+                    name="data[name]" 
                     required 
-                    placeholder="Email address" 
-                    class="flex-1 bg-white/5 border border-white/10 px-6 py-4 rounded-full focus:outline-none focus:border-blue-500 transition text-white"
+                    placeholder="Enter your name" 
+                    class="w-full bg-white/5 border border-white/10 px-6 py-4 rounded-full focus:outline-none focus:border-blue-500 transition text-white placeholder:text-gray-800"
                 >
-                <button type="submit" id="submit-btn" class="bg-blue-600 text-white px-10 py-4 rounded-full font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-500/20">
-                    Join Waitlist
-                </button>
+            </div>
+            
+            <div class="space-y-1">
+                <label class="text-[10px] uppercase tracking-[0.2em] text-gray-500 ml-4 font-bold">Email Address</label>
+                <div class="flex flex-col md:flex-row gap-3">
+                    <input 
+                        type="email" 
+                        name="data[email]" 
+                        required 
+                        placeholder="email@example.com" 
+                        class="flex-1 bg-white/5 border border-white/10 px-6 py-4 rounded-full focus:outline-none focus:border-blue-500 transition text-white placeholder:text-gray-800"
+                    >
+                    <button type="submit" id="submit-btn" class="bg-blue-600 text-white px-10 py-4 rounded-full font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                        Join Waitlist
+                    </button>
+                </div>
             </div>
         </form>
 
-        <div id="success-msg" class="hidden mt-8 p-8 glass rounded-[2rem] border-blue-500/30 animate-pulse">
-            <p class="text-blue-400 font-mono text-[10px] tracking-[0.4em] uppercase mb-2 font-bold">Registration Complete</p>
-            <p class="text-white font-light text-lg">Welcome to the future, <span id="user-name" class="font-bold text-blue-400"></span>.</p>
+        <div id="success-msg" class="hidden mt-8 p-12 glass rounded-[3rem] border-blue-500/20 text-center">
+            <div class="w-14 h-14 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
+                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <p class="text-blue-400 font-mono text-[10px] tracking-[0.5em] uppercase mb-3 font-bold">Registration Confirmed</p>
+            <h3 class="text-white text-2xl font-light italic">Welcome to the future, <span id="user-name" class="font-bold not-italic"></span>.</h3>
+            <p class="text-gray-500 text-sm mt-4 font-light">We'll reach out when your batch is ready.</p>
         </div>
         
-        <p class="mt-20 text-[10px] tracking-[0.6em] text-gray-700 uppercase font-bold">MirAIr Hardware Systems &copy; 2025</p>
+        <p class="mt-24 text-[10px] tracking-[0.6em] text-gray-800 uppercase font-bold">MirAIr Hardware Systems &copy; 2025</p>
     </div>
 </footer>
 
@@ -131,37 +145,45 @@
     const successMsg = document.getElementById('success-msg');
     const btn = document.getElementById('submit-btn');
     const userNameSpan = document.getElementById('user-name');
+    const timestampHidden = document.getElementById('timestamp-hidden');
 
     form.addEventListener("submit", e => {
         e.preventDefault();
-        
-        // Capture name for the success message
+
+    // 1. SILENT TIMESTAMP GENERATION (Hidden from UI)
+        const now = new Date();
+        const options = { 
+            year: 'numeric', month: 'short', day: 'numeric', 
+            hour: '2-digit', minute: '2-digit', hour12: true 
+        };
+        timestampHidden.value = now.toLocaleDateString('en-US', options).replace(',', ' -');
+
+        // 2. UI TRANSITION
         const nameInput = form.querySelector('input[name="data[name]"]').value;
-        const firstName = nameInput.split(' ')[0]; // Just get the first name
-        
-        btn.innerText = "Authenticating...";
+        const firstName = nameInput.trim().split(' ')[0];
+        btn.innerText = "Syncing...";
         btn.disabled = true;
 
-        //SHEETDB API URL
+        // 3. DATABASE SUBMISSION
+       //SheetDB API ID
         fetch('https://sheetdb.io/api/v1/hjgt0sv5ornri', {
             method : 'POST',
             body: new FormData(form),
         }).then(
             response => response.json()
         ).then((data) => {
-            // Personalize the success message
+            // Show Personalized Success Message
             userNameSpan.innerText = firstName;
-            
-            // UI Transition
             form.classList.add('hidden');
             successMsg.classList.remove('hidden');
         }).catch((error) => {
-            alert("Connection error. Please try again.");
+            console.error('Submission Error:', error);
+            alert("Connection lost. Please try again.");
             btn.innerText = "Join Waitlist";
             btn.disabled = false;
         });
     });
 </script>
-
+</script>
 </body>
 </html>
